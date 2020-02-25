@@ -1,0 +1,8 @@
+{
+  "env" : {
+    "MONGO_USERS" : "book-store-be",
+    "MONGO_PASWD" : "lDCXuNG2J3E1nQ1d",
+    "KEY_AUTH" : "N3K1TJlpXtXV3cvfDNR0WWH7ef4ofzNLRfNpRrtN",
+    "DB_NAME" : "book-store"
+    }
+}
