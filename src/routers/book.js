@@ -63,26 +63,15 @@ router.get("/books", async (req, res) => {
     }
     const query = {}
     try {
-        if(pageNo < 0 || pageNo == 0){
-            response = {"error": true, "message": "invalid page number, should start with 1"}
-            return res.json(response)
-        }
-        query.skip = size * (pageNo - 1)
-        query.limit = size
-
-        await Book.count({},async(err, totalCount) => {
-            if(err){
-                response = {"error" : true,"message" : "Error fetching data"}
-            }
-            await Book.find({book_name: {$regex: searchQuery}},{}, query, async(err, data) => {
-                if(err){
-                    response = {"error" : true,"message" : "Error fetching data"}
-                } else {
-                    const totalPages = Math.ceil(totalCount / size)
-                    res.status(200).send({status: true, message: 'success read data.', data: data, "pages": totalPages})
-                }
-            }).populate('category_id')
+        const totalCount = await Book.count({
+            book_name: {$regex: searchQuery, $options: 'i'}
         })
+        const totalPages = Math.ceil(totalCount / size)
+        await Book.find({book_name: {$regex: searchQuery, $options: 'i'}}).skip(size * (pageNo - 1)).limit(size ).populate('category_id')
+        .exec(function (err, books) {
+            if (err) return handleError(err);
+            res.status(200).send({status: true, message: 'success get data.', "totalCount": totalCount, "currentPage": pageNo, "per_page": size, "totalPages":totalPages, data: books});
+            })
     } catch (e) {
         res.status(500).send(e);
     }
@@ -104,26 +93,27 @@ router.get("/book/:id", async (req, res) => {
 
 
 router.get('/filter-books', async (req, res) => {
-    const filter = req.query.filter
-    console.log(filter)
-
+    const pageNo = parseInt(req.query.pageNo)
+    const size = parseInt(req.query.size)
+   
+   
     try {
-        await Book.find({category_id: filter}, async (err, response) => {
-            if(!err){
-                res.status(200).send(response)
-            } else {
-                res.status(500).send(err)
-            }
-        })
-    } catch (error) {
-        res.status(500).send(error)
+        const totalCount = await Book.count({category_id: req.query.filter})
+        const totalPages = Math.ceil(totalCount / size)
+        await Book.find({category_id: req.query.filter}).skip(size * (pageNo - 1)).limit(size )
+        .exec(function (err, books) {
+            if (err) return handleError(err);
+            res.status(200).send({status: true, message: 'success get data.', "totalCount": totalCount, "currentPage": pageNo, "per_page": size, "totalPages":totalPages, data: books});
+            })
+    } catch (e) {
+        res.status(500).send(e);
     }
 })
 
 router.delete("/book/:id", auth.auth, auth.checkRole, async (req, res) => {
     let id = req.params.id
     try {
-        const books = await Book.findOneAndDelete(id); 
+        const books = await Book.findOneAndDelete({_id: id}); 
         if(books){
             res.status(201).send({
                 success: true,
@@ -131,7 +121,7 @@ router.delete("/book/:id", auth.auth, auth.checkRole, async (req, res) => {
             })
         }
     } catch (e) {
-        res.status(500).send({
+        res.status(200).send({
             message: "Delete failed"
         });
     }
@@ -143,7 +133,8 @@ router.patch('/book/:id', auth.auth, auth.checkRole, async (req, res) => {
         let update = req.body
         let id = req.params.id
 
-        const books = await Book.findOneAndUpdate({_id  : id}, {$set: update});  
+        const books = await Book.findOneAndUpdate({_id  : id}, {$set: update},
+            {new: true}).exec()  
         if(books){
             res.status(201).send({
                 success: true,

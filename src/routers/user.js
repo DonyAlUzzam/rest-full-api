@@ -31,14 +31,14 @@ const upload = multer({
 
 router.post("/users/register", upload.single("avatar"), async (req, res) => {
   req.body.avatar = req.file.path;
-  
+  console.log(req.file)
   const user = new User({
     ...req.body,
     fullname : req.body.first_name+' '+req.body.last_name
   });
   try {
     await user.save();
-    res.status(201).send({ user})
+    res.status(201).send({ status: true, message: 'Register success.', data: user})
   } catch (e) {
     res.status(400).send(e);
   }
@@ -73,8 +73,7 @@ router.post('/users/login', async (req, res) => {
       .status(200)
       .send({status: true, message: 'success login user please wait redirect to home', data: user, "role": role.role, token: token})
   } catch (e) {
-    console.log(e)
-    res.status(422).send({
+    res.status(200).send({
       status: false,
       message: 'Login Failed',
     })

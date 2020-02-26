@@ -18,7 +18,7 @@ router.post("/category", auth.auth, auth.checkRole, async (req, res, next) => {
       });
     })
     .catch(error => {
-      res.status(500).send({ success: false, message: { error: error } });
+      res.status(200).send({ success: false, message: { error: error } });
     });
 });
 
@@ -75,14 +75,15 @@ router.patch("/category/:id", auth.auth, auth.checkRole, async (req, res, next) 
 router.delete("/category/:id", auth.auth, auth.checkRole, async (req, res, next) => {
   let id = req.params.id
     try {
-        const category = await Category.findOneAndDelete(id); 
-        if(category){
-            res.status(201).send({
-                success: true,
-                message: "Category has been Deleted!",
-                data : category
-            })
-        }
+          const category = await Category.findOneAndDelete({_id: id}); 
+            if(category){
+                res.status(201).send({
+                    success: true,
+                    message: "Category has been Deleted!",
+                    data : category
+                })
+            }
+       
     } catch (e) {
         res.status(500).send({
             message: "Delete failed"

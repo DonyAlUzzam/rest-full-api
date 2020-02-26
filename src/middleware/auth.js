@@ -16,7 +16,7 @@ const auth = async (req, res, next) => {
     req.user = user
     next()
   } catch (e) {
-    res.status(401).send({
+    res.status(200).send({
       error: 'Please Login',
     })
   };
@@ -34,7 +34,7 @@ const checkRole = async (req, res, next) => {
     if (check.role === "admin") {
       next();
     } else {
-      res.status(401).send({
+      res.status(200).send({
         message: "No Authorization"
       });
     }
