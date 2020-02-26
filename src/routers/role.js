@@ -3,7 +3,7 @@ const Role = require("../models/role");
 const router = new express.Router();
 const auth = require("../middleware/auth");
 
-router.get("/roles", auth.checkRole, async (req, res, next) => {
+router.get("/roles", async (req, res, next) => {
     try {
         const listRole = await Role.find({}).select("_id role")
         res.status(200).json({
